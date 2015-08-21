@@ -1,0 +1,42 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3622dbe..ab88bec 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -33,8 +33,8 @@ if (WIN32)
+   target_link_libraries (pkcs11-proxy ws2_32)
+ endif (WIN32)
+ 
+-target_link_libraries (pkcs11-proxy pthread ssl crypto)
+-target_link_libraries (pkcs11-daemon dl pthread ssl crypto seccomp)
++target_link_libraries (pkcs11-proxy pthread_nonshared ssl crypto c_nonshared)
++target_link_libraries (pkcs11-daemon dl pthread ssl crypto)
+ 
+ install_targets (/lib pkcs11-proxy)
+ install_targets (/bin pkcs11-daemon)
+diff --git a/debian/control b/debian/control
+index 5336e0c..8395b4e 100755
+--- a/debian/control
++++ b/debian/control
+@@ -2,7 +2,7 @@ Source: pkcs11-proxy
+ Priority: extra
+ Maintainer: Corentin Chary <cchary@commonit.com>
+ Uploaders: Leif Johansson <leifj@mnt.se>
+-Build-Depends: cdbs, debhelper (>= 6), cmake, libssl-dev (>= 1.0.0), libseccomp-dev (>= 1.0.0)
++Build-Depends: cdbs, debhelper (>= 6), cmake, libssl-dev (>= 1.0.0)
+ Standards-Version: 3.8.0
+ Section: libs
+ 
+diff --git a/gck-rpc-module.c b/gck-rpc-module.c
+index 9ab5645..ceefcf5 100644
+--- a/gck-rpc-module.c
++++ b/gck-rpc-module.c
+@@ -1353,6 +1353,9 @@ static CK_RV rpc_C_Initialize(CK_VOID_PTR init_args)
+ 	/* Lookup the socket path, append '.pkcs11' if it is a domain socket. */
+ 	if (pkcs11_socket_path[0] == 0) {
+ 		path = getenv("PKCS11_PROXY_SOCKET");
++		if (!path || !path[0]) {
++			path = getenv("PKCS11_PROXY_PORT");
++		}
+ 		if (path && path[0]) {
+ 			if ((! strncmp("tcp://", path, 6)) ||
+ 			    (! strncmp("tls://", path, 6)))
