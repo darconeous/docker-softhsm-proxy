@@ -8,18 +8,23 @@ RUN apt-get -y update \
 	&& DEBIAN_FRONTEND=noninteractive \
 		apt-get -y install git
 
-# Clone the repo
-RUN git clone https://github.com/SUNET/pkcs11-proxy.git && cd pkcs11-proxy && git checkout 0caa567d78a6d88365946399b68e3327969f3bff
-#RUN git clone https://github.com/SUNET/pkcs11-proxy.git && cd pkcs11-proxy && git checkout 639947e416fbc37c3f455ed160341ca278d523c1
-
-# Grab and add the patch
-#ADD pkcs11-proxy.diff /pkcs11-proxy.diff
-#RUN cd pkcs11-proxy && git apply ../pkcs11-proxy.diff
-
 # Get packages needed to build pkcs11-daemon
 RUN apt-get -y update \
 	&& DEBIAN_FRONTEND=noninteractive \
 		apt-get -y install dpkg-dev cmake cdbs libseccomp-dev debhelper libssl-dev
+
+# Shut git up
+RUN git config --global user.email "darco@deepdarc.com" && git config --global user.name "Robert Quattlebaum"
+
+# Clone the repo
+RUN git clone https://github.com/SUNET/pkcs11-proxy.git \
+	&& cd pkcs11-proxy \
+	&& git checkout 0caa567d78a6d88365946399b68e3327969f3bff \
+	&& git cherry-pick 1c2954cde94a5d4ac87528bd90c29c6a24374f60 ae700e6e5201d5288c82c9834a708bc09e488afa
+
+# Grab and add the patch
+#ADD pkcs11-proxy.diff /pkcs11-proxy.diff
+#RUN cd pkcs11-proxy && git apply ../pkcs11-proxy.diff
 
 # Make the debian packages
 RUN cd pkcs11-proxy && dpkg-buildpackage
